@@ -1,5 +1,6 @@
 *.pyc
 *~
+.DS_Store
 .directory
 .project
 .pydevproject
@@ -17,6 +18,6 @@ docs/_build
 *.pfx
 sent_xml.xml
 received_xml.xml
-nfse-exemplo.py
-nfcom-exemplo.py
-nfe-exemplo.py
+nfse-exemplo*.py
+nfe-exemplo*.py
+nfcom-exemplo*.py
