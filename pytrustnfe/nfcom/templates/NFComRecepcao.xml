@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<NFCom xmlns="http://www.portalfiscal.inf.br/NFCom">
-    <infNFCom versao="1.00" Id="{{ id }}">
+<NFCom xmlns="http://www.portalfiscal.inf.br/nfcom">
+    <infNFCom Id="{{ Id }}" versao="1.00">
         <ide>
             <cUF>{{ ide.cUF }}</cUF>
             <tpAmb>{{ ide.tpAmb }}</tpAmb>
@@ -12,7 +11,7 @@
             <dhEmi>{{ ide.dhEmi }}</dhEmi>
             <tpEmis>{{ ide.tpEmis }}</tpEmis>
             <nSiteAutoriz>{{ ide.nSiteAutoriz }}</nSiteAutoriz>
-            <cMunFG>{{ ide.cMungFG }}</cMunFG>
+            <cMunFG>{{ ide.cMunFG }}</cMunFG>
             <finNFCom>{{ ide.finNFCom }}</finNFCom>
             <tpFat>{{ ide.tpFat }}</tpFat>
             <verProc>{{ ide.verProc }}</verProc>
@@ -53,7 +52,7 @@
             <idOutros>{{ dest.idOutros }}</idOutros>
             {% endif %}
             <indIEDest>{{ dest.indIEDest }}</indIEDest>
-            {% if dest.indIEDest == '2' -%}
+            {% if dest.indIEDest == 2 -%}
             <IE>ISENTO</IE>
             {% else %}
             <IE>{{ dest.IE }}</IE>
@@ -102,7 +101,11 @@
         </gCoFat>
         {% endif %}
         {% for det in dets %}
+        {% if det.chNFComAnt is defined -%}
         <det nItem="{{ det.nItem }}" chNFComAnt="{{ det.chNFComAnt }}" nItemAnt="{{ det.nItemAnt }}">
+        {% else %}
+        <det nItem="{{ det.nItem }}">
+        {% endif %}
             <prod>
                 <cProd>{{ det.prod.cProd }}</cProd>
                 <xProd>{{ det.prod.xProd }}</xProd>

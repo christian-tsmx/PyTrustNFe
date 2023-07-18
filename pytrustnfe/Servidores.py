@@ -72,7 +72,7 @@ def localizar_url(servico, estado, mod="55", ambiente=2):
     # Implementação inicial do NFCom
     # Todos estados utilizam o servidor SVRS
     if mod == NFCOM_MODELO:
-        sigla = SIGLA_ESTADO["43"]
+        sigla = SIGLA_ESTADO["11"]
     else:
         sigla = SIGLA_ESTADO[estado]
     
@@ -177,17 +177,17 @@ SVRS = {
     NFCOM_MODELO: {
         AMBIENTE_PRODUCAO: {
             "servidor": "nfcom.svrs.rs.gov.br",
-            WS_NFCOM_CONSULTA: "WS/NFComConsulta/NFComConsulta.asmx",
-            WS_NFCOM_RECEPCAO: "WS/NFComRecepcao/NFComRecepcao.asmx",
-            WS_NFCOM_RECEPCAO_EVENTO: "WS/NFComRecepcaoEvento/NFComRecepcaoEvento.asmx",
-            WS_NFCOM_STATUS_SERVICO: "WS/NFComStatusServico/NFComStatusServico.asmx",
+            WS_NFCOM_CONSULTA: "WS/NFComConsulta/NFComConsulta.asmx?wsdl",
+            WS_NFCOM_RECEPCAO: "WS/NFComRecepcao/NFComRecepcao.asmx?wsdl",
+            WS_NFCOM_RECEPCAO_EVENTO: "WS/NFComRecepcaoEvento/NFComRecepcaoEvento.asmx?wsdl",
+            WS_NFCOM_STATUS_SERVICO: "WS/NFComStatusServico/NFComStatusServico.asmx?wsdl",
         },
         AMBIENTE_HOMOLOGACAO: {
             "servidor": "nfcom-homologacao.svrs.rs.gov.br",
-            WS_NFCOM_CONSULTA: "WS/NFComConsulta/NFComConsulta.asmx",
-            WS_NFCOM_RECEPCAO: "WS/NFComRecepcao/NFComRecepcao.asmx",
-            WS_NFCOM_RECEPCAO_EVENTO: "WS/NFComRecepcaoEvento/NFComRecepcaoEvento.asmx",
-            WS_NFCOM_STATUS_SERVICO: "WS/NFComStatusServico/NFComStatusServico.asmx",
+            WS_NFCOM_CONSULTA: "WS/NFComConsulta/NFComConsulta.asmx?wsdl",
+            WS_NFCOM_RECEPCAO: "WS/NFComRecepcao/NFComRecepcao.asmx?wsdl",
+            WS_NFCOM_RECEPCAO_EVENTO: "WS/NFComRecepcaoEvento/NFComRecepcaoEvento.asmx?wsdl",
+            WS_NFCOM_STATUS_SERVICO: "WS/NFComStatusServico/NFComStatusServico.asmx?wsdl",
         },
     }
 }

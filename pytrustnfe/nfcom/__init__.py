@@ -6,10 +6,9 @@
 import os
 import requests
 from lxml import etree
-from .patch import has_patch
-from .assinatura import Assinatura
+from pytrustnfe.nfcom.assinatura import Assinatura
 from pytrustnfe.xml import render_xml, sanitize_response
-from pytrustnfe.utils import  gerar_chave_nfcom, ChaveNFCom
+from pytrustnfe.utils import  gerar_chave_nfcom,nfcom_qrcode,ChaveNFCom
 from pytrustnfe.Servidores import localizar_url
 from pytrustnfe.certificado import extract_cert_and_key_from_pfx, save_cert_key
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -18,6 +17,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from requests import Session
 from zeep import Client
 from zeep.transports import Transport
+import logging.config
+import base64
 
 
 def _generate_nfcom_id(**kwargs):
@@ -35,24 +36,27 @@ def _generate_nfcom_id(**kwargs):
         "numero": item["ide"]["nNF"],
         "tipo": item["ide"]["tpEmis"],
         "codigo": item["ide"]["cNF"],
+        "site_aut": 0,
     }
     chave_nfcom = ChaveNFCom(**vals)
     chave_nfcom = gerar_chave_nfcom(chave_nfcom)
-    item["Id"] = chave_nfcom
+    item["Id"] = chave_nfcom[:len(chave_nfcom)]
     item["ide"]["cDV"] = chave_nfcom[len(chave_nfcom) - 1 :]
+    item["qrCodNFCom"] = nfcom_qrcode(chave_nfcom[5:len(chave_nfcom)],kwargs["ambiente"],item["ide"]["cUF"])
 
 
 def _render(certificado, method, sign, **kwargs):
     path = os.path.join(os.path.dirname(__file__), "templates")
-    xmlElem_send = render_xml(path, "%s.xml" % method, True, **kwargs)
+    xmlElem_send = render_xml(path, "%s.xml" % method, True, **kwargs["infNFCom"])
+    xml_obj = etree.fromstring(xmlElem_send)
 
     if sign:
         signer = Assinatura(certificado.pfx, certificado.password)
         if method == "NFComRecepcao":
-            xml_send = signer.assina_xml(xmlElem_send, kwargs["infNFCom"]["Id"])
+            xml_send = signer.assina_xml(xml_obj, kwargs["infNFCom"]["Id"])
 
     else:
-        xml_send = etree.tostring(xmlElem_send, encoding=str)
+        xml_send = xmlElem_send
     return xml_send
 
 
@@ -61,6 +65,8 @@ def _get_session(certificado):
     cert, key = save_cert_key(cert, key)
 
     session = Session()
+    session.headers['Accept-Encoding'] = "gzip,deflate"
+    session.headers['Content-Type'] = "application/soap+xml"
     session.cert = (cert, key)
     session.verify = False
     return session
@@ -82,26 +88,47 @@ def _send(certificado, method, **kwargs):
     base_url = localizar_url(
         method, kwargs["estado"], kwargs["modelo"], kwargs["ambiente"]
     )
+    logging.config.dictConfig({
+        'version': 1,
+        'formatters': {
+            'verbose': {
+                'format': '%(name)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            },
+        },
+        'loggers': {
+            'zeep.transports': {
+                'level': 'DEBUG',
+                'propagate': True,
+                'handlers': ['console'],
+            },
+        }
+    })
     session = _get_session(certificado)
-    patch = has_patch(kwargs["estado"], method)
-    if patch:
-        return patch(session, xml_send, kwargs["ambiente"])
-    transport = Transport(session=session)
+    transport = Transport(session=session,timeout=300)
     first_op, client = _get_client(base_url, transport)
-    return _send_zeep(first_op, client, xml_send)
+    return _send_zeep(first_op, client, xml_send, method == "NFComRecepcao")
 
 
-def _send_zeep(first_operation, client, xml_send):
-    parser = etree.XMLParser(strip_cdata=False)
-    xml = etree.fromstring(xml_send, parser=parser)
-
-    namespaceNFCom = xml.find(".//{http://www.portalfiscal.inf.br/NFCom}NFCom")
-    if namespaceNFCom is not None:
-        namespaceNFCom.set("xmlns", "http://www.portalfiscal.inf.br/NFCom")
+def _send_zeep(first_operation, client, xml_send_raw, b64_encode = False):
+    #Base64 encode
+    xml_send = ""
+    if b64_encode:
+        xml_bytes = xml_send_raw.encode('ascii')
+        b64_bytes = base64.b64encode(xml_bytes)
+        xml_send  = b64_bytes.decode('ascii')
+    else:
+        xml_send  = xml_send_raw
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
     with client.settings(raw_response=True):
-        response = client.service[first_operation](xml)
+        response = client.service[first_operation](xml_send)
         response, obj = sanitize_response(response.text)
         return {
             "sent_xml": xml_send,
