@@ -1,0 +1,27 @@
+<PedidoEnvioLoteNFTS xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="https://nfse.salvador.ba.gov.br/nfts">
+  <Cabecalho Versao="1" xmlns="">
+    <Remetente>
+      <CPFCNPJ>
+        <CNPJ>{{ nfse.cnpj_prestador }}</CNPJ>
+      </CPFCNPJ>
+    </Remetente>
+    <transacao>true</transacao>
+    {% set datatempo = rps.data_emissao.split('T')[0].split('-') %}
+    <dtInicio>{{ datatempo[0] }}-{{ datatempo[1] }}-{{ datatempo[2] }}</dtInicio>
+    <dtFim>{{ datatempo[0] }}-{{ datatempo[1] }}-{{ datatempo[2] }}</dtFim>
+    <QtdNFTS>{{ nfse.lista_rps|length }}1</QtdNFTS>
+    {% set valortotal = 0.0 %}
+    {% set valordeducoes = 0.0 %}
+    {% for rps in nfse.lista_rps -%}
+      {% set valortotal = valortotal + rps.servico.valor_servico %}
+      {% set valordeducoes = valordeducoes + rps.servico.valor_descontos %}
+    {% endfor %}
+    <ValorTotalServicos>{{ valortotal }}</ValorTotalServicos>
+    <ValorTotalDeducoes>{{ valordeducoes }}</ValorTotalDeducoes>
+  </Cabecalho>
+  {% for rps in nfse.lista_rps -%}
+  {% include 'Rps.xml' %}
+  {% endfor %}
+</PedidoEnvioLoteNFTS>

@@ -1,0 +1,38 @@
+<NFTS xmlns="">
+  <TipoDocumento>{{ rps.tipo_rps }}</TipoDocumento>
+  <ChaveDocumento>
+    <InscricaoMunicipal>{{ nfse.inscricao_municipal }}</InscricaoMunicipal>
+    <SerieNFTS>{{ rps.serie }}</SerieNFTS>
+    <NumeroDocumento>{{ rps.numero }}</NumeroDocumento>
+  </ChaveDocumento>
+    {% set datatempo = rps.data_emissao.split('T')[0].split('-') %}
+  <DataPrestacao>{{ datatempo[0] }}-{{ datatempo[1] }}-{{ datatempo[2] }}</DataPrestacao>
+  <StatusNFTS>N</StatusNFTS>
+  <TributacaoNFTS>T</TributacaoNFTS>
+  <ValorServicos>{{ rps.servico.valor_servico }}</ValorServicos>
+  <ValorDeducoes>{{ rps.servico.valor_descontos }}</ValorDeducoes>
+  <CodigoServico>{{ rps.servico.codigo_atividade }}</CodigoServico>
+  <CodigoCnae>{{ rps.servico.cnae_servico }}</CodigoCnae>
+  <AliquotaServicos>{{ rps.servico.aliquota }}</AliquotaServicos>
+  <ISSRetidoTomador>true</ISSRetidoTomador>
+  <Prestador>
+    <CPFCNPJ>
+      <CNPJ>{{ nfse.cnpj_prestador }}</CNPJ>
+    </CPFCNPJ>
+    <RazaoSocialPrestador>{{ rps.prestador.razao_social }}</RazaoSocialPrestador>
+  </Prestador>
+  <Tomador>
+    <CPFCNPJ>
+      {% if rps.tomador.cpf_cnpj|length == 14  %}
+      <CNPJ>{{ rps.tomador.cpf_cnpj }}</CNPJ>
+      {% endif %}
+      {% if rps.tomador.cpf_cnpj|length == 11  %}
+      <CPF>{{ rps.tomador.cpf_cnpj }}</CPF>
+      {% endif %}
+    </CPFCNPJ>
+    <RazaoSocial>{{ rps.tomador.razao_social }}</RazaoSocial>
+  </Tomador>
+  <RegimeTributacao>{{ rps.regime_tributacao }}</RegimeTributacao>
+  <Discriminacao>{{ rps.servico.discriminacao }}</Discriminacao>
+  <TipoNFTS>1</TipoNFTS>
+</NFTS>
