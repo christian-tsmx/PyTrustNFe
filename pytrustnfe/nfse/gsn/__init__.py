@@ -5,7 +5,7 @@
 import os
 from pytrustnfe.xml import render_xml, sanitize_response
 from pytrustnfe.certificado import extract_cert_and_key_from_pfx, save_cert_key
-from pytrustnfe.nfse.webiss.assinatura import Assinatura
+from pytrustnfe.nfse.gsn.assinatura import Assinatura
 from lxml import etree
 from zeep.transports import Transport
 from requests import Session
@@ -20,30 +20,27 @@ def _render(certificado, method, **kwargs):
     )
     signer = Assinatura(certificado.pfx, certificado.password)
 
-    referencia = ""
-    if method == "RecepcionarLoteRpsSincrono" or method == "RecepcionarLoteRps":
-        referencia = kwargs["nfse"]["numero_lote"]
-
-    xml_string_send = render_xml(path, "%s.xml" % method, True, False, **kwargs)
+    if method == "TesteEnvioLoteNFTS":
+        xml_string_send = render_xml(path, "PedidoEnvioLoteNFTS.xml", True, False, **kwargs)
+    else:
+        xml_string_send = render_xml(path, "%s.xml" % method, True, False, **kwargs)
 
     # xml object
     xml_send = etree.fromstring(
         xml_string_send, parser=parser)
 
-    for item in kwargs["nfse"]["lista_rps"]:
-        reference = "rps:{0}{1}".format(
-            item.get('numero'), item.get('serie'))
+    # sign all NFTS children and bring signature to Assinatura tag
+    signer.assina_nfts_xml(xml_send)
 
-        signer.assina_xml(xml_send, reference)
-
-    xml_signed_send = signer.assina_xml(xml_send, "lote:{0}".format(referencia))
+    # sign xml
+    xml_signed_send = signer.assina_xml(xml_send)
     return xml_signed_send
 
 def _send(certificado, method, **kwargs):
     path = os.path.join(os.path.dirname(__file__), "templates")
 
     if kwargs["ambiente"] == "homologacao":
-        url = "https://homologacao.webiss.com.br/ws/nfse.asmx"
+        url = "https://nfse.salvador.ba.gov.br/ws/LoteNFTS.asmx?WSDL"
     else:
         url = kwargs["base_url"]
 
@@ -69,12 +66,12 @@ def _send(certificado, method, **kwargs):
     return {"sent_xml": str(soap), "received_xml": str(response.encode('utf8')), "object": obj.Body }
 
 def xml_recepcionar_lote_rps(certificado, **kwargs):
-    return _render(certificado, "PedidoEnvioLoteNTFS", **kwargs)
+    return _render(certificado, "PedidoEnvioLoteNFTS", **kwargs)
 
 def recepcionar_lote_rps(certificado, **kwargs):
     if "xml" not in kwargs:
         kwargs["xml"] = xml_recepcionar_lote_rps(certificado, **kwargs)
-    return _send(certificado, "PedidoEnvioLoteNTFS", **kwargs)
+    return _send(certificado, "PedidoEnvioLoteNFTS", **kwargs)
 
 def gerar_nfse(certificado, **kwargs):
     return _send(certificado, "GerarNfse", **kwargs)

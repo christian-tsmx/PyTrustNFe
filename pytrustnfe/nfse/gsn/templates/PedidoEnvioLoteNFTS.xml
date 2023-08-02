@@ -8,15 +8,21 @@ xmlns="https://nfse.salvador.ba.gov.br/nfts">
       </CPFCNPJ>
     </Remetente>
     <transacao>true</transacao>
-    {% set datatempo = rps.data_emissao.split('T')[0].split('-') %}
+    {% set datatempo = nfse.lista_rps[0].data_emissao.split('T')[0].split('-') %}
     <dtInicio>{{ datatempo[0] }}-{{ datatempo[1] }}-{{ datatempo[2] }}</dtInicio>
     <dtFim>{{ datatempo[0] }}-{{ datatempo[1] }}-{{ datatempo[2] }}</dtFim>
     <QtdNFTS>{{ nfse.lista_rps|length }}1</QtdNFTS>
     {% set valortotal = 0.0 %}
     {% set valordeducoes = 0.0 %}
     {% for rps in nfse.lista_rps -%}
-      {% set valortotal = valortotal + rps.servico.valor_servico %}
-      {% set valordeducoes = valordeducoes + rps.servico.valor_descontos %}
+      {% set valor_servico = rps.servico.valor_servico | float %}
+      {% set valortotal = valortotal + valor_servico %}
+      {% if rps.servico.valor_descontos is defined -%}
+        {% set valor_descontos = rps.servico.valor_descontos | float %}
+        {% set valordeducoes = valordeducoes + valor_descontos %}
+      {% else %}
+        {% set valordeducoes = 0.0 %}
+      {% endif %}
     {% endfor %}
     <ValorTotalServicos>{{ valortotal }}</ValorTotalServicos>
     <ValorTotalDeducoes>{{ valordeducoes }}</ValorTotalDeducoes>

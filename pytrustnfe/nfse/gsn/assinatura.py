@@ -20,8 +20,8 @@ class Assinatura(object):
         cert = crypto.dump_certificate(crypto.FILETYPE_PEM, pfx.get_certificate())
 
         return cert, key
-
-    def assina_xml(self, xml_element, reference, getchildren=False, **kwargs):
+    
+    def assina_nfts_xml(self, xml_element):
         cert, key = self.extract_cert_key()
 
         signer = XMLSigner(method=signxml.methods.enveloped, 
@@ -30,31 +30,38 @@ class Assinatura(object):
                            c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315')
 
         signer.namespaces = {None: signxml.namespaces.ds}
-        ref_uri = ('#%s' % reference) if reference else None
 
-        element = xml_element.find(".//*[@id='%s']" % (reference))
-        if element is None:
-            element = xml_element.find(".//*[@Id='%s']" % (reference))
-        signed_root = signer.sign(
-            element, key=key.encode(), cert=cert.encode(),
-            reference_uri=ref_uri)
-        if reference:
-            element_signed = xml_element.find(".//*[@id='%s']" % (reference))
-            if element_signed is None:
-                element_signed = xml_element.find(".//*[@Id='%s']" % (reference))
-            signature = signed_root.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")[-1]
+        for nfts in xml_element.findall(".//{https://nfse.salvador.ba.gov.br/nfts}NFTS"):
+            signed_root = signer.sign(nfts, key=key.encode(), cert=cert.encode())
 
-            if kwargs.get('include_ref'):
-                signature.set(kwargs['include_ref'], reference)
-
-            if element_signed is not None and signature is not None:
-                parent = element_signed.getparent()
-                parent.append(signature)
-
-            if kwargs.get('remove_attrib'):
-                element_signed.attrib.pop(kwargs['remove_attrib'], None)
+            signature_value = signed_root.find(".//{http://www.w3.org/2000/09/xmldsig#}SignatureValue").text
+            signature_elem = etree.Element("Assinatura")
+            signature_elem.text = signature_value
+            
+            nfts.append(signature_elem)
 
         if sys.version_info[0] > 2:
             return etree.tostring(xml_element, encoding=str)
         else:
             return etree.tostring(xml_element, encoding="utf8")
+
+    def assina_xml(self, xml):
+        cert, key = self.extract_cert_key()
+
+        signer = XMLSigner(method=signxml.methods.enveloped, 
+                           signature_algorithm="rsa-sha1",
+                           digest_algorithm='sha1',
+                           c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315')
+
+        ns = {None: signer.namespaces['ds']}
+        signer.namespaces = ns
+
+        signed_root = signer.sign(xml, key=key, cert=cert)
+
+        encoding = "utf8"        
+        if sys.version_info[0] > 2:
+            encoding = str
+            
+        xml_output = etree.tostring(signed_root, encoding=encoding)
+
+        return xml_output

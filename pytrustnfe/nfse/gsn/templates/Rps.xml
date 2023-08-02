@@ -1,4 +1,4 @@
-<NFTS xmlns="">
+<NFTS>
   <TipoDocumento>{{ rps.tipo_rps }}</TipoDocumento>
   <ChaveDocumento>
     <InscricaoMunicipal>{{ nfse.inscricao_municipal }}</InscricaoMunicipal>
