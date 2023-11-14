@@ -3,6 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 import os
+import sys
 from pytrustnfe.xml import render_xml, sanitize_response
 from pytrustnfe.certificado import extract_cert_and_key_from_pfx, save_cert_key
 from lxml import etree
@@ -72,13 +73,40 @@ def gerar_nfse(certificado, **kwargs):
 def envio_lote_rps_assincrono(certificado, **kwargs):
     return _send(certificado, "RecepcionarLoteRps", **kwargs)
 
-
 def envio_lote_rps(certificado, **kwargs):
     return _send(certificado, "RecepcionarLoteRpsSincrono", **kwargs)
 
+def xml_cancelar_nfse(certificado, **kwargs):
+    return _render(certificado, "CancelarNfse", **kwargs)
 
 def cancelar_nfse(certificado, **kwargs):
-    return _send(certificado, "CancelarNfse", **kwargs)
+    if "xml" not in kwargs:
+        kwargs["xml"] = xml_cancelar_nfse(certificado, **kwargs)
+    response = _send(certificado, "CancelarNfse", **kwargs)
+    xml = None
+
+    try:
+        #Conversão a objeto e Busca pelo elemento Nfse
+        res, xml_obj = sanitize_response(response['object']['esCancelarNfseResponse']['return'].text)
+        #Caso haja algum erro, as mensagens serão retornadas
+        if xml_obj.find(".//listaErros") is not None:
+            xml_obj = xml_obj.find(".//listaErros")
+        else:
+            xml_obj = xml_obj.find('')
+        #Conversão de volta a string
+        xml = etree.tostring(xml_obj)
+        if sys.version_info[0] > 2:
+            from html.parser import HTMLParser
+            xml = xml.encode(str)
+        else:
+            from HTMLParser import HTMLParser
+            xml = xml.encode('utf-8','ignore')
+        #unescape
+        xml = HTMLParser().unescape(xml)
+    except Exception as err:
+        pass
+
+    return xml
 
 
 def substituir_nfse(certificado, **kwargs):
@@ -89,8 +117,32 @@ def consulta_situacao_lote_rps(certificado, **kwargs):
     return _send(certificado, "ConsultaSituacaoLoteRPS", **kwargs)
 
 
-def consulta_nfse_por_rps(certificado, **kwargs):
-    return _send(certificado, "ConsultaNfsePorRps", **kwargs)
+def xml_consultar_nfse_por_rps(certificado, **kwargs):
+    return _render(certificado, "ConsultarNfsePorRps", **kwargs)
+
+def consultar_nfse_por_rps(certificado, **kwargs):
+    if "xml" not in kwargs:
+        kwargs["xml"] = xml_consultar_nfse_por_rps(certificado, **kwargs)
+    response = _send(certificado, "ConsultarNfsePorRps", **kwargs)
+    xml = None
+
+    try:
+        res, xml_obj = sanitize_response(response['object']['esConsultarNfsePorRpsResponse']['return'].text)
+        xml_obj = xml_obj.find(".//nfse")
+        #Conversão de volta a string
+        xml = etree.tostring(xml_obj)
+        if sys.version_info[0] > 2:
+            from html.parser import HTMLParser
+            xml = xml.encode(str)
+        else:
+            from HTMLParser import HTMLParser
+            xml = xml.encode('utf-8','ignore')
+        #unescape
+        xml = HTMLParser().unescape(xml)
+    except:
+        pass
+
+    return xml
 
 
 def consultar_lote_rps(certificado, **kwargs):

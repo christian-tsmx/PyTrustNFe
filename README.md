@@ -26,6 +26,7 @@ NFSe - Empresas Atendidas
 * **Directa** - Natal/RN
 * **DSF**
 * **Equiplano** 
+* **E-Cidade (Ords)**
 * **Fortaleza/CE** - (Fork Ginfes?)
 * **GINFES**
 * **Imperial** - Petrópolis/RH
@@ -237,14 +238,19 @@ from pytrustnfe.nfse.paulistana import cancelamento_nfe
 certificado = open('/path/certificado.pfx', 'r').read()
 certificado = Certificado(certificado, '123456')
 cancelamento = {
-    'cnpj_remetente': '123',
-    'assinatura': 'assinatura',
+    'cnpj_prestador': '123',
+    'chave_digital': '123',
     'numero_nfse': '456',
     'inscricao_municipal': '654',
-    'codigo_verificacao': '789',
+    'codigo_cancelamento': '789',
+    'razao_social_prestador': 'empresa l t da - me',
+    'rps': {
+        'numero': '123',
+        'numero_rps': '456',
+    }
 }
 
-retorno = cancelamento_nfe(certificado, cancelamento=cancelamento)
+retorno = cancelamento_nfe(certificado, nfse=cancelamento)
 
 # retorno é um dicionário { 'received_xml':'', 'sent_xml':'', 'object': object() }
 print retorno['received_xml']

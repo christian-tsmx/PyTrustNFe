@@ -121,11 +121,13 @@ def consultar_nfse_por_rps(certificado, **kwargs):
         xml_element = response['object'].find('.//Nfse')
 
         if sys.version_info[0] > 2:
-            xml = str(etree.tostring(xml_element, encoding=str))
+            from html.parser import HTMLParser
+            xml = xml.encode(str)
         else:
-            xml = str(etree.tostring(xml_element, encoding="utf8"))
-            
-        xml = xml.replace('&#13;', '')
+            from HTMLParser import HTMLParser
+            xml = xml.encode('utf-8','ignore')
+        #unescape
+        xml = HTMLParser().unescape(xml)
     except:
         pass
 

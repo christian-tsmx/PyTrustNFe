@@ -1,0 +1,4 @@
+<consulta>
+    <inscricaoMunicipal>{{ nfse.inscricao_municipal }}</inscricaoMunicipal>
+    <codigoVerificacao>2978937BMA</codigoVerificacao>
+</consulta>

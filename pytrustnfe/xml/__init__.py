@@ -5,6 +5,7 @@
 from lxml import etree,objectify
 from jinja2 import Environment, FileSystemLoader
 from . import filters
+import re
 
 import sys
 
@@ -63,7 +64,7 @@ def sanitize_response(response):
         if i >= 0:
             elem.tag = elem.tag[i + 1:]
     objectify.deannotate(tree, cleanup_namespaces=True)
-    return response, objectify.fromstring(etree.tostring(tree))
+    return response, objectify.fromstring(etree.tostring(tree,xml_declaration=False))
 
 
 def recursively_normalize(vals):

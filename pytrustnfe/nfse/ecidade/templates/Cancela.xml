@@ -1,0 +1,6 @@
+<nfe>
+    <cancelaNota>
+        <codigoMotivo>{{ nfse.codigo_cancelamento }}</codigoMotivo>
+        <numeroNota>{{ nfse.rps.numero }}</numeroNota>
+    </cancelaNota>
+</nfe>
