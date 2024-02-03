@@ -25,6 +25,7 @@ def render_xml(path, template_name, remove_empty, **nfe):
     env.filters["format_datetime"] = filters.format_datetime
     env.filters["format_date"] = filters.format_date
     env.filters["comma"] = filters.format_with_comma
+    env.filters["zfill_str"] = filters.zfill_str
 
     template = env.get_template(template_name)
     xml = template.render(**nfe).replace("\n", "")

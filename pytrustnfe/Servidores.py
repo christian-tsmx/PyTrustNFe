@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # © 2016 Danimar Ribeiro
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+from copy import copy
+
 
 # Consultas básicas da NF-e
 WS_NFE_INUTILIZACAO = "NfeInutilizacao"
@@ -598,6 +600,7 @@ UFPR = {
         },
     },
 }
+UFPR[NFCOM_MODELO] = copy(SVRS[NFCOM_MODELO])
 
 UFPE = {
     AMBIENTE_PRODUCAO: {
