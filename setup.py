@@ -1,13 +1,11 @@
 # coding=utf-8
 from setuptools import setup, find_packages
-
-
-VERSION = "1.0.170"
+from pytrustnfe import get_version
 
 
 setup(
     name="PyTrustNFe3",
-    version=VERSION,
+    version=get_version(),
     author="Danimar Ribeiro",
     author_email="danimaribeiro@gmail.com",
     keywords=["nfe", "mdf-e"],
@@ -45,7 +43,7 @@ later (LGPLv2+)",
             "nfse/agiliblue/templates/*xml",
             "nfse/tinus/templates/*xml",
             "nfse/siasp/templates/*xml",
-            "nfse/cariacica/templates/*xml",
+            "nfse/smartapd/templates/*xml",
             "nfse/issnet/templates/*xml",
             "nfse/issweb/templates/*xml",
             "nfse/speedgov/templates/*xml",
@@ -56,6 +54,11 @@ later (LGPLv2+)",
             "nfse/tiplan/templates/*xml",
             "nfse/fortaleza/templates/*xml",
             "nfse/memory/templates/*xml",
+            "nfse/siapsistemas/templates/*xml",
+            "nfse/portaltributario/templates/*xml",
+            "nfse/giss/templates/*xml",
+            "nfse/ipm/templates/*xml",
+            "nfse/saatri/templates/*xml",
             "xml/schemas/*xsd",
         ]
     },
@@ -65,6 +68,7 @@ later (LGPLv2+)",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     install_requires=[
+        "requests",
         "Jinja2 >= 2.8",
         "pyOpenSSL == 19.1.0",
         "signxml >= 2.4.0",

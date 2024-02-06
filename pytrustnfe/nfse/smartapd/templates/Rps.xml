@@ -13,16 +13,15 @@
         <Servico>
             <Valores>
                 <ValorServicos>{{ rps.servico.valor_servico }}</ValorServicos>
-                <ValorDeducoes>{{ rps.servico.deducoes }}</ValorDeducoes>
+                <ValorDeducoes>0</ValorDeducoes>
                 <ValorPis>{{ rps.servico.pis }}</ValorPis>
                 <ValorCofins>{{ rps.servico.cofins }}</ValorCofins>
                 <ValorInss>{{ rps.servico.inss }}</ValorInss>
                 <ValorIr>{{ rps.servico.ir }}</ValorIr>
                 <ValorCsll>{{ rps.servico.csll }}</ValorCsll>
                 <OutrasRetencoes>{{ rps.servico.retencoes }}</OutrasRetencoes>
-                <ValTotTributos>{{ rps.servico.valor_tributos }}</ValTotTributos>
                 <ValorIss>{{ rps.servico.iss }}</ValorIss>
-                <Aliquota>{{ rps.servico.aliquota }}</Aliquota>
+                <Aliquota>{{ rps.servico.aliquota | float * 100.00 }}</Aliquota>
                 <DescontoIncondicionado>{{ rps.servico.desconto_incodicionado }}</DescontoIncondicionado>
                 <DescontoCondicionado>{{ rps.servico.desconto_codicionado }}</DescontoCondicionado>
             </Valores>
@@ -39,7 +38,6 @@
             <CodigoPais>rps.tomador.codigo_pais</CodigoPais>
             {% endif %}
             <ExigibilidadeISS>{{ rps.eligibilidade_iss }}</ExigibilidadeISS>
-            <MunicipioIncidencia>{{ rps.servico.codigo_municipio }}</MunicipioIncidencia>
         </Servico>
         <Prestador>
             <CpfCnpj>
@@ -80,24 +78,8 @@
                 {% endif %}
             </Contato>
         </TomadorServico>
-        <!-- <Intermediario>
-            <IdentificacaoIntermediario>
-                <CpfCnpj>
-                    {% if rps.intermediador.cpf_cnpj|length == 14  %}
-                    <Cnpj>{{ rps.intermediador.cpf_cnpj }}</Cnpj>
-                    {% endif %}
-                    {% if rps.intermediador.cpf_cnpj|length == 11  %}
-                    <Cpf>{{ rps.intermediador.cpf_cnpj }}</Cpf>
-                    {% endif %}
-                </CpfCnpj>
-                <InscricaoMunicipal>{{ rps.intermediador.inscricao_municipal }}</InscricaoMunicipal>
-            </IdentificacaoIntermediario>
-            <RazaoSocial>{{ rps.intermediador.razao_social }}</RazaoSocial>
-            <CodigoMunicipio>{{ rps.intermediador.codigo_municipio }}</CodigoMunicipio>
-        </Intermediario> -->
         <RegimeEspecialTributacao>{{ rps.regime_tributacao }}</RegimeEspecialTributacao>
         <OptanteSimplesNacional>{{ rps.optante_simples }}</OptanteSimplesNacional>
         <IncentivoFiscal>{{ rps.incentivo_fiscal }}</IncentivoFiscal>
-        <InformacoesComplementares>{{ rps.servico.informacao_complementar }}</InformacoesComplementares>
     </InfDeclaracaoPrestacaoServico>
 </Rps>

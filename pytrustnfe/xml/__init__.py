@@ -25,6 +25,9 @@ def render_xml(path, template_name, remove_empty, remove_newline = True, **nfe):
     env.filters["format_percent"] = filters.format_percent
     env.filters["format_datetime"] = filters.format_datetime
     env.filters["format_datetime_dmy"] = filters.format_datetime_dmy
+    env.filters["format_datetime_ymd"] = filters.format_datetime_ymd
+    env.filters["format_datetime_hms"] = filters.format_datetime_hms
+    env.filters["format_numeric"] = filters.format_numeric
     env.filters["format_cep"] = filters.format_cep
     env.filters["format_date"] = filters.format_date
     env.filters["comma"] = filters.format_with_comma
@@ -55,7 +58,10 @@ def render_xml(path, template_name, remove_empty, remove_newline = True, **nfe):
 
 def sanitize_response(response):
     parser = etree.XMLParser(encoding="utf-8")
-    tree = etree.fromstring(response.encode("UTF-8"), parser=parser)
+    if sys.version_info[0] < 3:
+        if isinstance(response,unicode):
+            response = response.encode("UTF-8")
+    tree = etree.fromstring(response, parser=parser)
     # Remove namespaces inuteis na resposta
     for elem in tree.getiterator():
         if not hasattr(elem.tag, "find"):
