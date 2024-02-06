@@ -71,7 +71,10 @@ def _send(certificado, method, **kwargs):
 
     request = requests.post(url, data=soap, headers=headers)
     response, obj = sanitize_response(request.content.decode('utf8', 'ignore'))
-    return {"sent_xml": str(soap), "received_xml": str(response.encode('utf8')), "object": obj.Body }
+    try:
+        return {"sent_xml": str(soap), "received_xml": str(response.encode('utf8')), "object": obj.Body }
+    except:
+        return {"sent_xml": str(soap), "received_xml": str(response), "object": obj.Body }
 
 def xml_recepcionar_lote_rps(certificado, **kwargs):
     return _render(certificado, "RecepcionarLoteRps", **kwargs)
