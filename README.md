@@ -25,6 +25,7 @@ NFSe - Empresas Atendidas
 * **Directa** - Natal/RN
 * **DSF**
 * **Equiplano** 
+* **FocusNFe** - [Cidades Atendidas](https://focusnfe.com.br/cidades-atendidas/)
 * **Fortaleza/CE** - (Fork Ginfes?)
 * **GINFES**
 * **GISS** - (Fork Ginfes?)
