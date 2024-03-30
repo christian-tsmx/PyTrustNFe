@@ -68,6 +68,12 @@ def _parse(certificado, method, **kwargs):
                 },
             }
             obj_lista.append(obj)
+    elif method in ["ConsultarNfsePorRps", "ConsultarLoteRps", "CancelarNfse"]:
+        obj_lista.append('R%sS%sT%s' %(
+            kwargs['nfse']['rps']['numero'],
+            kwargs['nfse']['rps']['serie'],
+            kwargs['nfse']['rps']['tipo_rps']
+        ))
     return obj_lista
 
 def _send(certificado, method, **kwargs):
@@ -77,16 +83,13 @@ def _send(certificado, method, **kwargs):
         base_url = "https://homologacao.focusnfe.com.br/v2/nfse"
     else:
         base_url = "https://api.focusnfe.com.br/v2/nfse"
+        
+    base_url = base_url + method
 
     headers = {
         "Content-Type": "application/json",
     }
-    ref = {
-        'ref': 'L%sR%sS%s' %(str(kwargs.get('numero_lote')).zfill(2),
-                             str(kwargs.get('numero_rps')).zfill(2),
-                             str(kwargs.get('serie')).zfill(2),
-                             )
-    }
+    ref = kwargs.get('params', None)
 
     status, r = requests.post(base_url, params=ref, headers=headers, data=json.dumps(kwargs.get('data')), auth=(kwargs.get('token'), ''))
 
@@ -100,21 +103,25 @@ def recepcionar_lote_rps(certificado, **kwargs):
     data = xml_recepcionar_lote_rps(certificado, **kwargs)
     nfse = kwargs.pop('nfse')
     kwargs["token"] = nfse.get('chave_digital')
-    kwargs["numero_lote"] = nfse.get('numero_lote')
     for nf_send in data:
         kwargs["data"] = nf_send
-        kwargs["numero_rps"] = kwargs["data"].pop('numero_rps')
-        kwargs["serie"] = kwargs["data"].pop('serie')
-        ret.append(_send(certificado, "RecepcionarLoteRps", **kwargs))
+        kwargs["params"] = {
+            'ref': 'R%sS%sT%s' %(str(kwargs["data"].pop('numero_rps')).zfill(2),
+                                str(kwargs["data"].pop('serie')).zfill(2),
+                                str(kwargs["data"].pop('tipo_rps')).zfill(2),
+                                )
+        }
+        ret.append(_send(certificado, "", **kwargs))
     return "\n\n".join(ret)
 
+def xml_consultar_nfse_por_rps(certificado, **kwargs):
+    return _parse(certificado, "ConsultarNfsePorRps", **kwargs)
+
 def consultar_nfse_por_rps(certificado, **kwargs):
-    return _send(certificado, "ConsultarNfsePorRps", **kwargs)
+    return _send(certificado, "/%s" % xml_consultar_nfse_por_rps(certificado, **kwargs), **kwargs)
 
 def xml_cancelar_nfse(certificado, **kwargs):
     return _parse(certificado, "CancelarNfse", **kwargs)
 
 def cancelar_nfse(certificado, **kwargs):
-    if "xml" not in kwargs:
-        kwargs["xml"] = xml_cancelar_nfse(certificado, **kwargs)
-    return _send(certificado, "CancelarNfse", **kwargs)
+    return _send(certificado, "/%s" % xml_cancelar_nfse(certificado, **kwargs), **kwargs)
