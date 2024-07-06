@@ -23,38 +23,6 @@ def _render(certificado, method, **kwargs):
 
     referencia = ""
     if method == "EnvioRPS":
-        #Processar campos dos RPS
-        for i, rps in enumerate(kwargs["nfse"]["lista_rps"]):            
-            #==========
-            #Tributação
-            #==========
-            tributacao = None
-            #M – Micro Empreendedor Individual (MEI)
-            if str(rps["regime_tributacao"]) == "5":
-                tributacao = "M"
-            #C - Isenta de ISS
-            elif str(rps["natureza_operacao"]) == '3':
-                tributacao = "C"
-            #F - Imune
-            elif str(rps["natureza_operacao"]) == '4':
-                tributacao = "F"
-            #K – Exigibilidade Sus.Dec. J/Proc.A
-            elif str(rps["natureza_operacao"]) in ['5','6']:
-                tributacao = "K"
-            #H - Tributável - Simples Nacional
-            elif str(rps["optante_simples"]) == "1":
-                tributacao = "H"
-            #E - Não Incidência no Município
-            elif str(rps["natureza_operacao"]) in ['1','2'] and str(rps["servico"]["codigo_municipio"]) != str(rps["tomador"]["codigo_municipio"]):
-                tributacao = "E"
-            #N - Não tributável
-            elif str(rps["natureza_operacao"]) in ['1','2'] and str(rps["servico"]["iss"]) == "0.00":
-                tributacao = "N"
-            #T - Tributável
-            else:
-                tributacao = "T"
-            
-            kwargs["nfse"]["lista_rps"][i]["tributacao"] = tributacao
         signer.gerar_assinatura_rps(**kwargs)
 
     xml_string_send = render_xml(path, "%s.xml" % method, True, **kwargs)
@@ -63,12 +31,8 @@ def _render(certificado, method, **kwargs):
     xml_send = etree.fromstring(
         xml_string_send, parser=parser)
 
-    if method == "recepcionarLoteRps":
-        xml_signed_send = signer.assina_xml(
-            xml_send, "lote:{0}".format(referencia))
-    elif method == "cancelarNfse":
-        xml_signed_send = signer.assina_xml(
-            xml_send, kwargs["nfse"]["rps"]["numero"])
+    if method == "EnvioRPS":
+        xml_signed_send = signer.assina_xml(xml_send)
     else:
         xml_signed_send = etree.tostring(xml_send)
 
@@ -80,8 +44,11 @@ def _render(certificado, method, **kwargs):
 def _send(certificado, method, **kwargs):
     path = os.path.join(os.path.dirname(__file__), "templates")
 
-    url = "%s/%s.%sHttpSoap11Endpoint" %(kwargs["base_url"], method2function[method], method2function[method])
+    url = kwargs["base_url"]
     print(url)
+
+    if method == "EnvioRPS" and kwargs.get("ambiente", "producao") == "homologacao":
+        method = "TesteEnvioLoteRps"
 
     xml_send = kwargs["xml"]
     path = os.path.join(os.path.dirname(__file__), "templates")
@@ -92,7 +59,9 @@ def _send(certificado, method, **kwargs):
     session = Session()
     session.cert = (cert, key)
     session.verify = False
-    action = "urn:%s" %(method)
+    action = "%sAsync" %(method)
+    if method == "ConsultaSituacaoLote":
+        action = method
     headers = {
         "Content-Type": "text/xml;charset=UTF-8",
         "SOAPAction": action,
@@ -113,6 +82,7 @@ def xml_recepcionar_lote_rps(certificado, **kwargs):
 def recepcionar_lote_rps(certificado, **kwargs):
     if "xml" not in kwargs:
         kwargs["xml"] = xml_recepcionar_lote_rps(certificado, **kwargs)
+    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx?WSDL"
     return _send(certificado, "EnvioRPS", **kwargs)
 
 def xml_cancelar_nfse(certificado, **kwargs):
@@ -146,45 +116,19 @@ def cancelar_nfse(certificado, **kwargs):
     return xml
 
 def xml_consultar_lote_rps(certificado, **kwargs):
-    return _render(certificado, "consultarLoteRps", **kwargs)
+    return _render(certificado, "ConsultaSituacaoLote", **kwargs)
 
 def consultar_lote_rps(certificado, **kwargs):
     if "xml" not in kwargs:
         kwargs["xml"] = xml_consultar_lote_rps(certificado, **kwargs)
-    response = _send(certificado, "consultarLoteRps", **kwargs)
+    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx?WSDL"
+    response = _send(certificado, "ConsultaSituacaoLote", **kwargs)
     xml = None
 
     try:
-        xml_clean = re.sub(r'\<\?xml.+\?\>\n?','',response['object']['consultarLoteRpsResponse']['return'].text)
+        xml_clean = re.sub(r'\<\?xml.+\?\>\n?','',response['object']['RetornoConsultaSituacaoLote'])
         res, xml_obj = sanitize_response(xml_clean)
         xml = etree.tostring(xml_obj,xml_declaration=False)
-        if sys.version_info[0] > 2:
-            from html.parser import HTMLParser
-            xml = xml.encode(str)
-        else:
-            from HTMLParser import HTMLParser
-            xml = xml.encode('utf-8','ignore')
-        #unescape
-        xml = HTMLParser().unescape(xml)
-    except:
-        pass
-
-    return xml
-
-def xml_consultar_nfse_por_rps(certificado, **kwargs):
-    return _render(certificado, "consultarNfsePorRps", **kwargs)
-
-def consultar_nfse_por_rps(certificado, **kwargs):
-    if "xml" not in kwargs:
-        kwargs["xml"] = xml_consultar_nfse_por_rps(certificado, **kwargs)
-    response = _send(certificado, "consultarNfsePorRps", **kwargs)
-    xml = None
-
-    try:
-        res, xml_obj = sanitize_response(response['object']['consultarNfsePorRpsResponse']['return'].text)
-        xml_obj = xml_obj.find(".//CompNfse")
-        #Conversão de volta a string
-        xml = etree.tostring(xml_obj)
         if sys.version_info[0] > 2:
             from html.parser import HTMLParser
             xml = xml.encode(str)

@@ -1,15 +1,15 @@
 
-  <RPS xmlns="">
+  <RPS>
     <Assinatura>{{ rps.assinatura }}</Assinatura>
     <ChaveRPS>
         <InscricaoPrestador>{{ nfse.inscricao_municipal }}</InscricaoPrestador>
         <SerieRPS>{{ rps.serie }}</SerieRPS>
         <NumeroRPS>{{ rps.numero }}</NumeroRPS>
     </ChaveRPS>
-    <TipoRPS>{{ rps.tipo_rps | default("RPS") }}</TipoRPS>
+    <TipoRPS>RPS-M</TipoRPS>
     <DataEmissao>{{ rps.data_emissao }}</DataEmissao>
     <StatusRPS>N</StatusRPS>
-    <TributacaoRPS>{{ rps.tributacao }}</TributacaoRPS>
+    <TributacaoRPS>{{ rps.tipo_rps | default("T") }}</TributacaoRPS>
     <ValorServicos>{{ rps.servico.valor_servico }}</ValorServicos>
     <ValorDeducoes>{{ rps.servico.valor_deducao }}</ValorDeducoes>
     <ValorPIS>{{ rps.servico.pis }}</ValorPIS>
@@ -35,8 +35,10 @@
     <InscricaoMunicipalTomador>{{ rps.tomador.inscricao_municipal }}</InscricaoMunicipalTomador>
     <InscricaoEstadualTomador>{{ rps.tomador.inscricao_estadual }}</InscricaoEstadualTomador>
     <RazaoSocialTomador>{{ rps.tomador.razao_social }}</RazaoSocialTomador>
+    {% if rps.tomador.endereco is defined -%}
     <EnderecoTomador>
-        <TipoLogradouro>{{ rps.tomador.tipo_logradouro }}</TipoLogradouro>
+        {% set tipo_logradouro = rps.tomador.endereco.split(' ') %}
+        <TipoLogradouro>{{ tipo_logradouro[0] }}</TipoLogradouro>
         <Logradouro>{{ rps.tomador.logradouro }}</Logradouro>
         <NumeroEndereco>{{ rps.tomador.numero }}</NumeroEndereco>
         <ComplementoEndereco>{{ rps.tomador.complemento }}</ComplementoEndereco>
@@ -45,6 +47,7 @@
         <UF>{{ rps.tomador.uf }}</UF>
         <CEP>{{ rps.tomador.cep }}</CEP>
     </EnderecoTomador>
+    {% endif %}
     <EmailTomador>{{ rps.tomador.email }}</EmailTomador>
     <Discriminacao>{{ rps.descricao }}</Discriminacao>
 </RPS>

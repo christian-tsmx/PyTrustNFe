@@ -47,22 +47,23 @@ class Assinatura(object):
             dados['serie_rps'] = "NF"
             dados['numero_rps'] = rps['numero']
             dados['dt_emissao'] = rps['data_emissao'].split("T")[0].replace("-","")
-            dados['trib'] = rps['tributacao']
+            dados['trib'] = rps['tipo_rps']
             dados['status'] = kwargs['nfse']['lista_rps'][i]['status']
             dados['iss_retido'] = "S" if str(kwargs['nfse']['lista_rps'][i]['servico']['iss_retido']) == "1" else "N"
             dados['valor_servico'] = rps['servico']['valor_servico']
-            dados['valor_deducoes'] = rps['servico']['deducoes']
+            dados['valor_deducoes'] = rps['servico'].get('deducoes','0.00')
             dados['cod_atividade'] = rps['servico']['codigo_atividade']
             if rps['tomador']['cpf_cnpj']:
                 dados['tomador_ind'] = '1' if len(str(rps['tomador']['cpf_cnpj'])) == 11 else '2'
             else:
                 dados['tomador_ind'] = '3'
             dados['cpfcnpj_tomador'] = rps['tomador']['cpf_cnpj']
-            if rps['intermed']['cpf_cnpj']:
+            if rps.get('intermed',{}).get('cpf_cnpj',None):
                 dados['intermed_ind'] = '1' if len(str(rps['intermed']['cpf_cnpj'])) == 11 else '2'
             else:
                 dados['intermed_ind'] = '3'
-            dados['cpfcnpj_intermed'] = rps['intermed']['cpf_cnpj']
+            dados['cpfcnpj_intermed'] = rps.get('intermed',{}).get('cpf_cnpj','00000000000000')
+            dados['iss_ret_intermed'] = rps.get('intermed',{}).get('iss_retido','N')
 
             #Gerar chave na ordem dos campos informada
             for campo in campos:
@@ -81,7 +82,7 @@ class Assinatura(object):
 
         return cert, key
 
-    def assina_xml(self, xml_element, reference, getchildren=False, **kwargs):
+    def assina_xml(self, xml):
         cert, key = self.extract_cert_key()
 
         signer = XMLSigner(method=signxml.methods.enveloped, 
@@ -89,36 +90,15 @@ class Assinatura(object):
                            digest_algorithm='sha1',
                            c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315')
 
-        ns = {}
-        ns[None] = signer.namespaces['ds']
+        ns = {None: signer.namespaces['ds']}
         signer.namespaces = ns
 
-        ref_uri = ('#%s' % reference) if reference else None
+        signed_root = signer.sign(xml, key=key, cert=cert)
 
-        element = xml_element.find(".//*[@id='%s']" % (reference))
-        if element is None:
-            element = xml_element.find(".//*[@Id='%s']" % (reference))
-        signed_root = signer.sign(
-            element, key=key.encode(), cert=cert.encode(),
-            reference_uri=ref_uri)
-
-        if reference:
-            element_signed = xml_element.find(".//*[@id='%s']" % (reference))
-            if element_signed is None:
-                element_signed = xml_element.find(".//*[@Id='%s']" % (reference))
-            signature = signed_root.findall(".//{http://www.w3.org/2000/09/xmldsig#}Signature")[-1]
-
-            if kwargs.get('include_ref'):
-                signature.set(kwargs['include_ref'], reference)
-
-            if element_signed is not None and signature is not None:
-                parent = element_signed.getparent()
-                parent.append(signature)
-
-            if kwargs.get('remove_attrib'):
-                element_signed.attrib.pop(kwargs['remove_attrib'], None)
-
+        encoding = "utf8"        
         if sys.version_info[0] > 2:
-            return etree.tostring(xml_element, encoding=str)
-        else:
-            return etree.tostring(xml_element, encoding="utf8")
+            encoding = str
+            
+        xml_output = etree.tostring(signed_root, encoding=encoding)
+
+        return xml_output

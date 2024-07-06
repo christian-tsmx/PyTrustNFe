@@ -7,3 +7,14 @@
 		</tem:{{ method }}>
 </soapenv:Body>
 </soapenv:Envelope>
+
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:nfe="http://www.prefeitura.sp.gov.br/nfe">
+   <soap:Header/>
+   <soap:Body>
+      <nfe:{{ method }}Request>
+         <nfe:versaoSchema>1</nfe:versaoSchema>
+         <!--Optional:-->
+         <nfe:MensagemXML><![CDATA[{{ soap_body }}]]></nfe:MensagemXML>
+      </nfe:{{ method }}Request>
+   </soap:Body>
+</soap:Envelope>

@@ -1,11 +1,12 @@
-<PedidoEnvioRPS xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.prefeitura.sp.gov.br/nfe">
-  <Cabecalho Versao="1">
-    <CPFCNPJRemetente>
-      <CNPJ>{{ nfse.cnpj_prestador }}</CNPJ>
-    </CPFCNPJRemetente>
-  </Cabecalho>
-  {% for rps in nfse.lista_rps -%}
-  {% include 'Rps.xml' %}
-  {% endfor %}
-  </RPS>
+<PedidoEnvioRPS xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://www.prefeitura.sp.gov.br/nfe">
+    <Cabecalho Versao="1">
+        <CPFCNPJRemetente>
+            <CNPJ>{{ nfse.cnpj_prestador }}</CNPJ>
+        </CPFCNPJRemetente>
+    </Cabecalho>
+    {% for rps in nfse.lista_rps -%}
+    {% include 'Rps.xml' %}
+    {% endfor %}
 </PedidoEnvioRPS>
