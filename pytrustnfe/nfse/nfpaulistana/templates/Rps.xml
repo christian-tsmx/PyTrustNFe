@@ -1,17 +1,17 @@
 
-  <RPS>
-    <Assinatura>{{ rps.assinatura }}</Assinatura>
+  <RPS xmlns="">
+    <Assinatura>assinatura:{{ rps.numero }}</Assinatura>
     <ChaveRPS>
         <InscricaoPrestador>{{ nfse.inscricao_municipal }}</InscricaoPrestador>
         <SerieRPS>{{ rps.serie }}</SerieRPS>
         <NumeroRPS>{{ rps.numero }}</NumeroRPS>
     </ChaveRPS>
-    <TipoRPS>RPS-M</TipoRPS>
-    <DataEmissao>{{ rps.data_emissao }}</DataEmissao>
+    <TipoRPS>RPS</TipoRPS>
+    <DataEmissao>{{ rps.data_emissao.split("T")[0] }}</DataEmissao>
     <StatusRPS>N</StatusRPS>
-    <TributacaoRPS>{{ rps.tipo_rps | default("T") }}</TributacaoRPS>
+    <TributacaoRPS>{{ rps.tipo_rps }}</TributacaoRPS>
     <ValorServicos>{{ rps.servico.valor_servico }}</ValorServicos>
-    <ValorDeducoes>{{ rps.servico.valor_deducao }}</ValorDeducoes>
+    <ValorDeducoes>{{ rps.servico.valor_deducao | default("0.00") }}</ValorDeducoes>
     <ValorPIS>{{ rps.servico.pis }}</ValorPIS>
     <ValorCOFINS>{{ rps.servico.cofins }}</ValorCOFINS>
     <ValorINSS>{{ rps.servico.inss }}</ValorINSS>
@@ -38,16 +38,15 @@
     {% if rps.tomador.endereco is defined -%}
     <EnderecoTomador>
         {% set tipo_logradouro = rps.tomador.endereco.split(' ') %}
-        <TipoLogradouro>{{ tipo_logradouro[0] }}</TipoLogradouro>
         <Logradouro>{{ rps.tomador.logradouro }}</Logradouro>
         <NumeroEndereco>{{ rps.tomador.numero }}</NumeroEndereco>
         <ComplementoEndereco>{{ rps.tomador.complemento }}</ComplementoEndereco>
         <Bairro>{{ rps.tomador.bairro }}</Bairro>
-        <Cidade>{{ rps.tomador.cidade }}</Cidade>
+        <Cidade>{{ rps.tomador.codigo_municipio }}</Cidade>
         <UF>{{ rps.tomador.uf }}</UF>
         <CEP>{{ rps.tomador.cep }}</CEP>
     </EnderecoTomador>
     {% endif %}
-    <EmailTomador>{{ rps.tomador.email }}</EmailTomador>
-    <Discriminacao>{{ rps.descricao }}</Discriminacao>
+    <EmailTomador><![CDATA[{{ rps.tomador.email }}]]></EmailTomador>
+    <Discriminacao><![CDATA[{{ rps.servico.discriminacao }}]]></Discriminacao>
 </RPS>

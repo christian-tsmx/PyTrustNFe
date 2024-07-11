@@ -14,24 +14,38 @@ from pytrustnfe.xml import render_xml, sanitize_response
 from pytrustnfe.certificado import extract_cert_and_key_from_pfx, save_cert_key
 
 
+op2action = {
+    "TesteEnvioLoteRPSAsync": "http://www.prefeitura.sp.gov.br/nfe/ws/testeEnvioLoteRPSAsync",
+    "EnvioLoteRPSAsync": "http://www.prefeitura.sp.gov.br/nfe/ws/envioLoteRPSAsync",
+}
+
 def _render(certificado, method, **kwargs):
     path = os.path.join(os.path.dirname(__file__), "templates")
     parser = etree.XMLParser(
-        remove_blank_text=True, remove_comments=True, strip_cdata=False
+        remove_blank_text=True, remove_comments=True, strip_cdata=True
     )
     signer = Assinatura(certificado.pfx, certificado.password)
 
     referencia = ""
-    if method == "EnvioRPS":
-        signer.gerar_assinatura_rps(**kwargs)
+    if method == "EnvioLoteRPS":
+        kwargs["nfse"]["total_servicos"] = sum(Decimal(rps["servico"]["valor_servico"]) for rps in kwargs["nfse"]["lista_rps"] if "valor_servico" in rps["servico"]) or Decimal("0.00")
+        kwargs["nfse"]["total_deducoes"] = sum(Decimal(rps["servico"]["deducoes"]) for rps in kwargs["nfse"]["lista_rps"] if "deducoes" in rps["servico"]) or Decimal("0.00")
 
-    xml_string_send = render_xml(path, "%s.xml" % method, True, **kwargs)
+        for i, rps in enumerate(kwargs['nfse']['lista_rps']):
+            kwargs['nfse']['lista_rps'][i]['status'] = "N" if rps['status'] == "1" else "C"
+            kwargs['nfse']['lista_rps'][i]['servico']['iss_retido'] = "S" if rps['servico']['iss_retido'] == "1" else "N"
 
+
+    xml_string_send = render_xml(path, "%s.xml" % method, True, False, **kwargs)
+    
     # xml object
     xml_send = etree.fromstring(
         xml_string_send, parser=parser)
 
-    if method == "EnvioRPS":
+    if method == "EnvioLoteRPS":
+        #Assina os RPS
+        signer.gerar_assinatura_rps(xml_send,**kwargs)
+        #Assina o lote
         xml_signed_send = signer.assina_xml(xml_send)
     else:
         xml_signed_send = etree.tostring(xml_send)
@@ -45,31 +59,31 @@ def _send(certificado, method, **kwargs):
     path = os.path.join(os.path.dirname(__file__), "templates")
 
     url = kwargs["base_url"]
-    print(url)
 
-    if method == "EnvioRPS" and kwargs.get("ambiente", "producao") == "homologacao":
-        method = "TesteEnvioLoteRps"
+    if method == "EnvioLoteRPS" and kwargs.get("ambiente", "producao") == "homologacao":
+        method = "TesteEnvioLoteRPS"
 
     xml_send = kwargs["xml"]
     path = os.path.join(os.path.dirname(__file__), "templates")
-    soap = render_xml(path, "SoapRequest.xml", True, **{"soap_body":xml_send, "method": method })
+    soap = render_xml(path, "SoapRequest.xml", True, False, **{"soap_body":xml_send, "method": method })
 
     cert, key = extract_cert_and_key_from_pfx(certificado.pfx, certificado.password)
     cert, key = save_cert_key(cert, key)
     session = Session()
     session.cert = (cert, key)
     session.verify = False
-    action = "%sAsync" %(method)
+    op = "%sAsync" %(method)
     if method == "ConsultaSituacaoLote":
-        action = method
+        op = method
+    action = op2action[op]
     headers = {
         "Content-Type": "text/xml;charset=UTF-8",
         "SOAPAction": action,
-        "Operation": method,
+        "Operation": op,
         "Content-length": str(len(soap))
     }
 
-    request = requests.post(url, data=soap, headers=headers)
+    request = session.post(url, data=soap, headers=headers)
     response, obj = sanitize_response(request.content.decode('utf8', 'ignore'))
     try:
         return {"sent_xml": str(soap), "received_xml": str(response.encode('utf8')), "object": obj.Body }
@@ -77,13 +91,13 @@ def _send(certificado, method, **kwargs):
         return {"sent_xml": str(soap), "received_xml": str(response), "object": obj.Body }
 
 def xml_recepcionar_lote_rps(certificado, **kwargs):
-    return _render(certificado, "EnvioRPS", **kwargs)
+    return _render(certificado, "EnvioLoteRPS", **kwargs)
 
 def recepcionar_lote_rps(certificado, **kwargs):
     if "xml" not in kwargs:
         kwargs["xml"] = xml_recepcionar_lote_rps(certificado, **kwargs)
-    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx?WSDL"
-    return _send(certificado, "EnvioRPS", **kwargs)
+    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx"
+    return _send(certificado, "EnvioLoteRPS", **kwargs)
 
 def xml_cancelar_nfse(certificado, **kwargs):
     return _render(certificado, "cancelarNfse", **kwargs)
@@ -121,7 +135,7 @@ def xml_consultar_lote_rps(certificado, **kwargs):
 def consultar_lote_rps(certificado, **kwargs):
     if "xml" not in kwargs:
         kwargs["xml"] = xml_consultar_lote_rps(certificado, **kwargs)
-    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx?WSDL"
+    kwargs["base_url"] = "https://nfews.prefeitura.sp.gov.br/lotenfeasync.asmx"
     response = _send(certificado, "ConsultaSituacaoLote", **kwargs)
     xml = None
 

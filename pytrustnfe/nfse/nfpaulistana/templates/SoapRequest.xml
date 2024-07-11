@@ -1,20 +1,10 @@
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-	xmlns:tem="http://server.nfse.thema.inf.br">
-	<soapenv:Header/>
-	<soapenv:Body>
-		<tem:{{ method }}>
-			<tem:xml><![CDATA[{{ soap_body }}]]></tem:xml>
-		</tem:{{ method }}>
-</soapenv:Body>
-</soapenv:Envelope>
-
-<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:nfe="http://www.prefeitura.sp.gov.br/nfe">
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.prefeitura.sp.gov.br/nfe">
    <soap:Header/>
    <soap:Body>
-      <nfe:{{ method }}Request>
-         <nfe:versaoSchema>1</nfe:versaoSchema>
+      <{{ method }}Request>
+         <versaoSchema>1</versaoSchema>
          <!--Optional:-->
-         <nfe:MensagemXML><![CDATA[{{ soap_body }}]]></nfe:MensagemXML>
-      </nfe:{{ method }}Request>
+         <MensagemXML><![CDATA[{{ soap_body }}]]></MensagemXML>
+      </{{ method }}Request>
    </soap:Body>
 </soap:Envelope>

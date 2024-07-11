@@ -583,11 +583,6 @@
           <xs:documentation>Data de emissão do RPS que originou a NFS-e.</xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element name="DataFatoGeradorNFe" type="xs:dateTime" minOccurs="1" maxOccurs="1">
-        <xs:annotation>
-          <xs:documentation>Data do fato gerador da NFS-e.</xs:documentation>
-        </xs:annotation>
-      </xs:element>
       <xs:element name="CPFCNPJPrestador" type="tipos:tpCPFCNPJ" minOccurs="1" maxOccurs="1">
         <xs:annotation>
           <xs:documentation>CPF/CNPJ do Prestador do serviço.</xs:documentation>
