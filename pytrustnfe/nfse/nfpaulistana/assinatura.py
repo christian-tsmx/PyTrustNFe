@@ -19,6 +19,8 @@ from cryptography.hazmat.primitives.asymmetric import padding, utils
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from signxml.util import ensure_bytes,ensure_str
 
+PY2 = sys.version_info[0] == 2
+
 class Assinatura(object):
 
     def __init__(self, cert, key):
@@ -89,7 +91,7 @@ class Assinatura(object):
             cert, key = self.extract_cert_key()
             key = load_pem_private_key(key, None, backend=default_backend())
             signature = key.sign(chave_raw.encode('ascii'), padding=padding.PKCS1v15(), algorithm=hashes.SHA1())
-            obj.text = base64.encodestring(signature)
+            obj.text = base64.encodestring(signature) if PY2 else base64.encodebytes(signature).decode()
 
     def extract_cert_key(self):
         pfx = crypto.load_pkcs12(self.cert, self.key)
