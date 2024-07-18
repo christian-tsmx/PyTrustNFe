@@ -20,7 +20,9 @@
                 <IssRetido>{{ rps.servico.iss_retido }}</IssRetido>
                 <ValorIss>{{ rps.servico.iss }}</ValorIss>
                 <OutrasRetencoes>{{ rps.servico.retencoes }}</OutrasRetencoes>
+                {% if rps.servico.aliquota is defined -%}
                 <Aliquota>{{ rps.servico.aliquota | float * 100.00 }}</Aliquota>
+                {% endif %}
                 <DescontoIncondicionado>{{ rps.servico.desconto_incondicionado|default('0.00') }}</DescontoIncondicionado>
                 <DescontoCondicionado>{{ rps.servico.desconto_condicionado|default('0.00') }}</DescontoCondicionado>
             </Valores>

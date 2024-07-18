@@ -77,6 +77,8 @@ class Assinatura(object):
             #não é necessário informar os dados de intermediário na assinatura se não houver intermediário
             if dados['intermed_ind'] == '3':
                 chave_raw = chave_raw[:-16]
+            
+            print(chave_raw)
 
 #            pfx = crypto.load_pkcs12(self.cert, self.key)
 #            print(chave_raw)
@@ -85,9 +87,9 @@ class Assinatura(object):
             
             obj = xml_send.find('.//Assinatura[.="assinatura:%s"]' % rps['numero'])
             cert, key = self.extract_cert_key()
-            key = load_pem_private_key(ensure_bytes(key), None, backend=default_backend())
-            signature = key.sign(ensure_bytes(chave_raw), padding=padding.PKCS1v15(), algorithm=hashes.SHA1())
-            obj.text = ensure_str(base64.b64encode(signature))
+            key = load_pem_private_key(key, None, backend=default_backend())
+            signature = key.sign(chave_raw.encode('ascii'), padding=padding.PKCS1v15(), algorithm=hashes.SHA1())
+            obj.text = base64.encodestring(signature)
 
     def extract_cert_key(self):
         pfx = crypto.load_pkcs12(self.cert, self.key)
