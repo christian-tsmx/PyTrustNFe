@@ -43,6 +43,7 @@ def render_xml(path, template_name, remove_empty, remove_newline = True, **nfe):
 
     template = env.get_template(template_name)
     xml = template.render(**nfe)
+    xml = xml.replace("\t", "")
     if remove_newline:
         xml = xml.replace("\n", "")
     parser = etree.XMLParser(
